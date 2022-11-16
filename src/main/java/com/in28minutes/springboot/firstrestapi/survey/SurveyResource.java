@@ -1,11 +1,16 @@
 package com.in28minutes.springboot.firstrestapi.survey;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -37,5 +42,12 @@ public class SurveyResource {
     @GetMapping("surveys/{surveyId}/questions/{questionId}")
     public Question retrieveQuestionById(@PathVariable String surveyId, @PathVariable String questionId){
         return surveyService.retrieveQuestionById(surveyId, questionId);
+    }
+
+    @PostMapping("surveys/{surveyId}/questions")
+    public ResponseEntity<Object> addNewSurveyQuestion(@PathVariable String surveyId, @RequestBody Question question){
+        String questionId = surveyService.addNewSurveyQuestion(surveyId, question);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{questionId}").buildAndExpand(questionId).toUri();
+        return ResponseEntity.created(location).build();
     }
 }

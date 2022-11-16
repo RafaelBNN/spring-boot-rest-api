@@ -2,6 +2,8 @@ package com.in28minutes.springboot.firstrestapi.survey;
 
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,13 +68,22 @@ public class SurveyService {
         return optionalSurvey.get().getQuestions();
     }
 
-public Question retrieveQuestionById(String surveyId, String questionId) {
-        Optional<Survey> optionalSurvey = surveys.stream().filter(survey -> survey.getId().equalsIgnoreCase(surveyId)).findFirst();
-        if(optionalSurvey.isEmpty()) return null;
-
-        List<Question> questions = optionalSurvey.get().getQuestions();
+    public Question retrieveQuestionById(String surveyId, String questionId) {
+        List<Question> questions = retrieveQuestionsBySurveyId(surveyId);
         Optional<Question> optionalQuestion = questions.stream().filter(question -> question.getId().equalsIgnoreCase(questionId)).findFirst();
         if(optionalQuestion.isEmpty()) return null;
         return optionalQuestion.get();
-    }   
+    }
+
+    public String addNewSurveyQuestion(String surveyId, Question question){
+        List<Question> questions = retrieveQuestionsBySurveyId(surveyId);
+        question.setId(generateRandomId());
+        questions.add(question);
+        return question.getId();
+    }
+
+    private String generateRandomId() {
+        SecureRandom secureRandom = new SecureRandom();
+        return new BigInteger(32, secureRandom).toString();
+    }
 }

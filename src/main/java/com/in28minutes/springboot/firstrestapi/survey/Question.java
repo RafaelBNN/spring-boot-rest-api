@@ -22,6 +22,10 @@ public class Question {
         return id;
     }
 
+    public void setId(String id){
+        this.id = id;
+    }
+
     public String getDescription() {
         return description;
     }
