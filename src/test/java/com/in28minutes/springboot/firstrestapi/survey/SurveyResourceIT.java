@@ -3,6 +3,10 @@ package com.in28minutes.springboot.firstrestapi.survey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -80,5 +84,28 @@ public class SurveyResourceIT {
         assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
         assertEquals("application/json", responseEntity.getHeaders().get("Content-Type").get(0));
         JSONAssert.assertEquals(expected, body, false);
+    }
+
+    @Test
+    void testAddNewSurveyQuestion_BasicScenario(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        String requestBody = """
+            {
+                "description": "My Favorite Programming Language",
+                "options":[
+                    "C",
+                    "C++",
+                    "Java",
+                    "Gallina"
+                ],
+                "correctAnswer": "Gallina"
+            }
+                """;
+        HttpEntity<String> httpEntity = new HttpEntity<String>(requestBody, headers);
+        ResponseEntity<String> responseEntity = template.exchange("/surveys/Survey1/questions", HttpMethod.POST, httpEntity, String.class);
+        
+        assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+        assertTrue(responseEntity.getHeaders().get("Location").get(0).contains("/surveys/Survey1/questions/"));
     }
 }
