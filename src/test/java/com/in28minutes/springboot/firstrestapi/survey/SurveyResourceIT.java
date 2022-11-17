@@ -1,6 +1,7 @@
 package com.in28minutes.springboot.firstrestapi.survey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -19,15 +20,65 @@ public class SurveyResourceIT {
     private TestRestTemplate template;
 
     @Test
+    void testRetrieveAllSurveys_BasicScenario() throws JSONException{
+        ResponseEntity<String> responseEntity = template.getForEntity("/surveys", String.class);
+        String expected = """
+            [
+                {
+                    "id": "Survey1",
+                    "title": "My Favorite Survey",
+                    "description": "Description of the Survey"
+                },
+                {
+                    "id": "Survey2",
+                    "title": "My Second Favorite Survey",
+                    "description": "Description of the Second Survey"
+                }
+            ]
+                """;
+        String body = responseEntity.getBody(); 
+        
+        assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+        assertEquals("application/json", responseEntity.getHeaders().get("Content-Type").get(0));
+        JSONAssert.assertEquals(expected, body, false);
+    }
+
+    @Test
+    void testRetrieveSurveyById_BasicScenario() throws JSONException{
+        ResponseEntity<String> responseEntity = template.getForEntity("/surveys/Survey2", String.class);
+        String expected = """
+            {"id":"Survey2","title":"My Second Favorite Survey","description":"Description of the Second Survey"}
+                """;
+        String body = responseEntity.getBody(); 
+        
+        assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+        assertEquals("application/json", responseEntity.getHeaders().get("Content-Type").get(0));
+        JSONAssert.assertEquals(expected, body, false);
+    }
+
+    @Test
+    void testRetrieveQuestionsBySurveyId_BasicScenario() throws JSONException{
+        ResponseEntity<String> responseEntity = template.getForEntity("/surveys/Survey1/questions", String.class);
+        String expected = """
+            [{"id":"Question1"},{"id":"Question2"},{"id":"Question3"}]
+                """;
+        String body = responseEntity.getBody(); 
+        
+        assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+        assertEquals("application/json", responseEntity.getHeaders().get("Content-Type").get(0));
+        JSONAssert.assertEquals(expected, body, false);
+    }
+
+    @Test
     void testRetrieveQuestionById_BasicScenario() throws JSONException {
         ResponseEntity<String> responseEntity = template.getForEntity("/surveys/Survey2/questions/question4", String.class);
         String expected = """
             {"id":"Question4","description":"Most Popular Cloud Platform Today","options":["AWS","Azure","Google Cloud","Oracle Cloud"]}
                 """;
-        String body = responseEntity.getBody(); //{"id":"Question4","description":"Most Popular Cloud Platform Today","options":["AWS","Azure","Google Cloud","Oracle Cloud"],"correctAnswer":"AWS"}
-        System.out.println(responseEntity.getHeaders()); // [Content-Type:"application/json", Transfer-Encoding:"chunked", Date:"Thu, 17 Nov 2022 13:57:11 GMT", Keep-Alive:"timeout=60", Connection:"keep-alive"]
-        // System.out.println("Hello World Test");
-
+        String body = responseEntity.getBody(); 
+        
+        assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+        assertEquals("application/json", responseEntity.getHeaders().get("Content-Type").get(0));
         JSONAssert.assertEquals(expected, body, false);
     }
 }
