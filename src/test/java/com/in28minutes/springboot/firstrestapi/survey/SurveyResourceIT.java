@@ -106,6 +106,10 @@ public class SurveyResourceIT {
         ResponseEntity<String> responseEntity = template.exchange("/surveys/Survey1/questions", HttpMethod.POST, httpEntity, String.class);
         
         assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
-        assertTrue(responseEntity.getHeaders().get("Location").get(0).contains("/surveys/Survey1/questions/"));
+
+        String locationHeader = responseEntity.getHeaders().get("Location").get(0);
+        assertTrue(locationHeader.contains("/surveys/Survey1/questions/"));
+
+        template.delete(locationHeader);
     }
 }
