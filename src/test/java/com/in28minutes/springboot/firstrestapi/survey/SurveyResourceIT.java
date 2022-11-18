@@ -16,16 +16,25 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 
+import com.in28minutes.springboot.firstrestapi.utils.SecurityUtility;
+
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class SurveyResourceIT {
 
-    //http://localhost:8080/surveys/Survey2/questions/question4
+    @Autowired
+    SecurityUtility securityUtility;
+
     @Autowired
     private TestRestTemplate template;
 
     @Test
     void testRetrieveAllSurveys_BasicScenario() throws JSONException{
-        ResponseEntity<String> responseEntity = template.getForEntity("/surveys", String.class);
+
+        HttpHeaders headers = createHttpContentAndAuthHeaders();
+        HttpEntity<String> httpEntity = new HttpEntity<String>(null, headers);
+        ResponseEntity<String> responseEntity = template.exchange("/surveys", HttpMethod.GET, httpEntity, String.class);
+
+        // ResponseEntity<String> responseEntity = template.getForEntity("/surveys", String.class);
         String expected = """
             [
                 {
@@ -49,7 +58,11 @@ public class SurveyResourceIT {
 
     @Test
     void testRetrieveSurveyById_BasicScenario() throws JSONException{
-        ResponseEntity<String> responseEntity = template.getForEntity("/surveys/Survey2", String.class);
+
+        HttpHeaders headers = createHttpContentAndAuthHeaders();
+        HttpEntity<String> httpEntity = new HttpEntity<String>(null, headers);
+        ResponseEntity<String> responseEntity = template.exchange("/surveys/Survey2", HttpMethod.GET, httpEntity, String.class);
+
         String expected = """
             {"id":"Survey2","title":"My Second Favorite Survey","description":"Description of the Second Survey"}
                 """;
@@ -62,7 +75,11 @@ public class SurveyResourceIT {
 
     @Test
     void testRetrieveQuestionsBySurveyId_BasicScenario() throws JSONException{
-        ResponseEntity<String> responseEntity = template.getForEntity("/surveys/Survey1/questions", String.class);
+
+        HttpHeaders headers = createHttpContentAndAuthHeaders();
+        HttpEntity<String> httpEntity = new HttpEntity<String>(null, headers);
+        ResponseEntity<String> responseEntity = template.exchange("/surveys/Survey1/questions", HttpMethod.GET, httpEntity, String.class);
+
         String expected = """
             [{"id":"Question1"},{"id":"Question2"},{"id":"Question3"}]
                 """;
@@ -75,7 +92,11 @@ public class SurveyResourceIT {
 
     @Test
     void testRetrieveQuestionById_BasicScenario() throws JSONException {
-        ResponseEntity<String> responseEntity = template.getForEntity("/surveys/Survey2/questions/question4", String.class);
+
+        HttpHeaders headers = createHttpContentAndAuthHeaders();
+        HttpEntity<String> httpEntity = new HttpEntity<String>(null, headers);
+        ResponseEntity<String> responseEntity = template.exchange("/surveys/Survey2/questions/question4", HttpMethod.GET, httpEntity, String.class);
+
         String expected = """
             {"id":"Question4","description":"Most Popular Cloud Platform Today","options":["AWS","Azure","Google Cloud","Oracle Cloud"]}
                 """;
@@ -88,8 +109,6 @@ public class SurveyResourceIT {
 
     @Test
     void testAddNewSurveyQuestion_BasicScenario(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
         String requestBody = """
             {
                 "description": "My Favorite Programming Language",
@@ -102,6 +121,8 @@ public class SurveyResourceIT {
                 "correctAnswer": "Gallina"
             }
                 """;
+
+        HttpHeaders headers = createHttpContentAndAuthHeaders();
         HttpEntity<String> httpEntity = new HttpEntity<String>(requestBody, headers);
         ResponseEntity<String> responseEntity = template.exchange("/surveys/Survey1/questions", HttpMethod.POST, httpEntity, String.class);
         
@@ -110,6 +131,16 @@ public class SurveyResourceIT {
         String locationHeader = responseEntity.getHeaders().get("Location").get(0);
         assertTrue(locationHeader.contains("/surveys/Survey1/questions/"));
 
-        template.delete(locationHeader);
+        ResponseEntity<String> responseEntityDelete = template.exchange(locationHeader, HttpMethod.DELETE, httpEntity, String.class);
+        // template.delete(locationHeader);
+        assertTrue(responseEntityDelete.getStatusCode().is2xxSuccessful());
     }
+
+    private HttpHeaders createHttpContentAndAuthHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/json");
+        headers.add("Authorization", "Basic " + securityUtility.performBasicAuthEncoding("admin", "password"));
+        return headers;
+    }
+
 }
