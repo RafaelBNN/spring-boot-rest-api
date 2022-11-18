@@ -1,6 +1,9 @@
 package com.in28minutes.springboot.firstrestapi.survey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -174,4 +177,35 @@ public class SurveyResourceTest {
         assertEquals(200, mvcResult.getResponse().getStatus());
         JSONAssert.assertEquals(expected, mvcResult.getResponse().getContentAsString(), false);
     }
+
+    @Test
+    void testAddNewSurveyQuestion() throws Exception{
+        String requestBody = """
+            {
+                "description": "My Favorite Programming Language",
+                "options":[
+                    "C",
+                    "C++",
+                    "Java",
+                    "Gallina"
+                ],
+                "correctAnswer": "Gallina"
+            }
+                """;
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                    .post("http://localhost:8080/surveys/survey1/questions")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .content(requestBody)
+                    .contentType(MediaType.APPLICATION_JSON);
+
+        when(surveyService.addNewSurveyQuestion(anyString(),any())).thenReturn("SOME_ID");
+        
+        MvcResult mvcResult = mockMvc.perform(requestBuilder).andReturn();
+        String locationHeader = mvcResult.getResponse().getHeader("Location");
+
+        assertEquals(201, mvcResult.getResponse().getStatus());
+        assertTrue(locationHeader.contains("/surveys/survey1/questions/SOME_ID"));
+    }
+
 }
