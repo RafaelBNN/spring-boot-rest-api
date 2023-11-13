@@ -2,7 +2,7 @@ package com.in28minutes.springboot.firstrestapi.user;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.Id; // mudanca pra subir
 
 @Entity
 public class UserDetails {
